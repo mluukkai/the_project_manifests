@@ -28,10 +28,10 @@ patches:
 images:
 - name: PROJECT/BROADCASTER
   newName: europe-north1-docker.pkg.dev/my-dwk-gke/my-repository/dwk-environments-broadcaster
-  newTag: main-e8d7112219daaddb77de28e201fa03ae700542af
+  newTag: main-24f3e7edf171e1a1f19ff2111da8daecc12cafeb
 - name: PROJECT/TODO-APP
   newName: europe-north1-docker.pkg.dev/my-dwk-gke/my-repository/dwk-environments
-  newTag: main-e8d7112219daaddb77de28e201fa03ae700542af
+  newTag: main-24f3e7edf171e1a1f19ff2111da8daecc12cafeb
 - name: PROJECT/todo-backend
   newName: europe-north1-docker.pkg.dev/my-dwk-gke/my-repository/dwk-environments-backend
-  newTag: main-e8d7112219daaddb77de28e201fa03ae700542af
+  newTag: main-24f3e7edf171e1a1f19ff2111da8daecc12cafeb
