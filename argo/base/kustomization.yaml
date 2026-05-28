@@ -1,0 +1,17 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+  - manifests/configmap.yaml
+  - manifests/postgres-secret.yaml
+  - manifests/pvc.yaml
+  - manifests/postgres-statefulset.yaml
+  - manifests/deployment.yaml
+  - manifests/service.yaml
+  - manifests/backend-deployment.yaml
+  - manifests/backend-service.yaml
+  - manifests/broadcaster-deployment.yaml
+  - manifests/gateway.yaml
+  - manifests/wiki-random-todo-script-configmap.yaml
+  - manifests/wiki-random-todo-job.yaml
+  - manifests/wiki-random-todo-cronjob.yaml

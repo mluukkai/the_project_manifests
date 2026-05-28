@@ -1,0 +1,44 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: wikipedia-random-todo-job
+  namespace: project
+spec:
+  backoffLimit: 2
+  ttlSecondsAfterFinished: 3600
+  template:
+    spec:
+      restartPolicy: OnFailure
+      containers:
+        - name: wikipedia-random-todo
+          image: curlimages/curl:8.8.0
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              cpu: 200m
+          env:
+            - name: TODO_BACKEND_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: todo-app-config
+                  key: TODO_BACKEND_URL
+            - name: MAX_TODO_LENGTH
+              valueFrom:
+                configMapKeyRef:
+                  name: todo-app-config
+                  key: MAX_TODO_LENGTH
+          command:
+            - /bin/sh
+            - /scripts/wiki-random-todo.sh
+          volumeMounts:
+            - name: wikipedia-random-todo-script
+              mountPath: /scripts/wiki-random-todo.sh
+              subPath: wiki-random-todo.sh
+              readOnly: true
+      volumes:
+        - name: wikipedia-random-todo-script
+          configMap:
+            name: wikipedia-random-todo-script
+            defaultMode: 0555

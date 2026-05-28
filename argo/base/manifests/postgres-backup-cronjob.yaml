@@ -1,0 +1,95 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: postgres-backup-cronjob
+  namespace: project
+spec:
+  schedule: "0 0 * * *"
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 2
+  failedJobsHistoryLimit: 2
+  jobTemplate:
+    spec:
+      backoffLimit: 2
+      ttlSecondsAfterFinished: 86400
+      template:
+        spec:
+          restartPolicy: OnFailure
+          initContainers:
+            - name: postgres-dump
+              image: postgres:18
+              env:
+                - name: POSTGRES_HOST
+                  valueFrom:
+                    configMapKeyRef:
+                      name: todo-app-config
+                      key: POSTGRES_HOST
+                - name: POSTGRES_DB
+                  valueFrom:
+                    configMapKeyRef:
+                      name: todo-app-config
+                      key: POSTGRES_DB
+                - name: POSTGRES_USER
+                  valueFrom:
+                    configMapKeyRef:
+                      name: todo-app-config
+                      key: POSTGRES_USER
+                - name: POSTGRES_PASSWORD
+                  valueFrom:
+                    secretKeyRef:
+                      name: postgres-secret
+                      key: POSTGRES_PASSWORD
+              command:
+                - /bin/sh
+                - -c
+                - |
+                  set -euo pipefail
+
+                  export PGPASSWORD="$POSTGRES_PASSWORD"
+                  pg_dump -h "$POSTGRES_HOST" -U "$POSTGRES_USER" -d "$POSTGRES_DB" | gzip > /backup/todo-backup.sql.gz
+              volumeMounts:
+                - name: backup-data
+                  mountPath: /backup
+          containers:
+            - name: postgres-backup
+              image: google/cloud-sdk:slim
+              resources:
+                requests:
+                  cpu: 100m
+                  memory: 256Mi
+                limits:
+                  cpu: 500m
+              env:
+                - name: GCS_BUCKET
+                  valueFrom:
+                    secretKeyRef:
+                      name: gcs-backup-secret
+                      key: bucket
+                - name: GOOGLE_APPLICATION_CREDENTIALS
+                  value: /var/secrets/google/key.json
+              command:
+                - /bin/sh
+                - -c
+                - |
+                  set -euo pipefail
+
+                  timestamp="$(date +%Y-%m-%d_%H-%M-%S)"
+                  backup_file="/backup/todo-backup.sql.gz"
+
+                  gcloud auth activate-service-account --key-file="$GOOGLE_APPLICATION_CREDENTIALS"
+                  gcloud storage cp "$backup_file" "gs://${GCS_BUCKET}/todo-backups/todo-backup-${timestamp}.sql.gz"
+              volumeMounts:
+                - name: backup-data
+                  mountPath: /backup
+                - name: gcs-service-account
+                  mountPath: /var/secrets/google
+                  readOnly: true
+          volumes:
+            - name: backup-data
+              emptyDir: {}
+            - name: gcs-service-account
+              secret:
+                secretName: gcs-backup-secret
+                items:
+                  - key: service-account.json
+                    path: key.json

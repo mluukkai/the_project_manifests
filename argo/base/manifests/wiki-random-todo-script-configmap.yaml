@@ -1,0 +1,40 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: wikipedia-random-todo-script
+  namespace: project
+data:
+  wiki-random-todo.sh: |
+    #!/bin/sh
+    set -eu
+
+    WIKI_RANDOM_URL="https://en.wikipedia.org/wiki/Special:Random"
+    PREFIX="Read "
+    MAX_TODO_LENGTH="${MAX_TODO_LENGTH:-140}"
+
+    RANDOM_ARTICLE_URL="$(curl -fsSI "$WIKI_RANDOM_URL" \
+      | tr -d '\r' \
+      | awk 'BEGIN { IGNORECASE = 1 } /^location:/ { print $2; exit }')"
+
+    if [ -z "$RANDOM_ARTICLE_URL" ]; then
+      RANDOM_ARTICLE_URL="$(curl -fsSL -o /dev/null -w '%{url_effective}' "$WIKI_RANDOM_URL")"
+    fi
+
+    TODO="${PREFIX}${RANDOM_ARTICLE_URL}"
+
+    if [ "${#TODO}" -gt "$MAX_TODO_LENGTH" ]; then
+      ALLOWED_URL_LENGTH=$((MAX_TODO_LENGTH - ${#PREFIX} - 3))
+
+      if [ "$ALLOWED_URL_LENGTH" -lt 1 ]; then
+        TODO="$(printf '%s' "$PREFIX" | cut -c1-"$MAX_TODO_LENGTH")"
+      else
+        TRUNCATED_URL="$(printf '%s' "$RANDOM_ARTICLE_URL" | cut -c1-"$ALLOWED_URL_LENGTH")..."
+        TODO="${PREFIX}${TRUNCATED_URL}"
+      fi
+    fi
+
+    ESCAPED_TODO="$(printf '%s' "$TODO" | sed 's/\\/\\\\/g; s/"/\\"/g')"
+
+    curl -fsS -X POST "$TODO_BACKEND_URL/todos" \
+      -H "Content-Type: application/json" \
+      -d "{\"todo\":\"$ESCAPED_TODO\"}"

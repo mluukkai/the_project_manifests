@@ -1,0 +1,53 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: broadcaster-deployment
+  namespace: project
+  labels:
+    app: broadcaster
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: broadcaster
+  template:
+    metadata:
+      labels:
+        app: broadcaster
+    spec:
+      containers:
+        - name: broadcaster
+          image: PROJECT/BROADCASTER:latest
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: 3002
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            timeoutSeconds: 2
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /readyz
+              port: 3002
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            timeoutSeconds: 2
+            failureThreshold: 3
+          env:
+            - name: PORT
+              valueFrom:
+                configMapKeyRef:
+                  name: todo-app-config
+                  key: BROADCASTER_PORT
+            - name: NATS_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: todo-app-config
+                  key: NATS_URL
+            - name: DISCORD_WEBHOOK_URL
+              valueFrom:
+                secretKeyRef:
+                  name: broadcaster-secret
+                  key: DISCORD_WEBHOOK_URL
+                  optional: true

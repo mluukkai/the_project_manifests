@@ -1,0 +1,81 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: todo-app-deployment
+  namespace: project
+  labels:
+    app: todo-app
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: todo-app
+  template:
+    metadata:
+      labels:
+        app: todo-app
+    spec:
+      containers:
+        - name: todo-app
+          image: PROJECT/TODO-APP:latest
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: 3000
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            timeoutSeconds: 2
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /readyz
+              port: 3000
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            timeoutSeconds: 2
+            failureThreshold: 3
+          env:
+            - name: APP_ENVIRONMENT
+              valueFrom:
+                configMapKeyRef:
+                  name: todo-app-config
+                  key: APP_ENVIRONMENT
+            - name: PORT
+              valueFrom:
+                configMapKeyRef:
+                  name: todo-app-config
+                  key: APP_PORT
+            - name: TODO_BACKEND_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: todo-app-config
+                  key: TODO_BACKEND_URL
+            - name: IMAGES_DIR
+              valueFrom:
+                configMapKeyRef:
+                  name: todo-app-config
+                  key: IMAGES_DIR
+            - name: IMAGE_SOURCE_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: todo-app-config
+                  key: IMAGE_SOURCE_URL
+            - name: CACHE_DURATION_MS
+              valueFrom:
+                configMapKeyRef:
+                  name: todo-app-config
+                  key: CACHE_DURATION_MS
+            - name: MAX_TODO_LENGTH
+              valueFrom:
+                configMapKeyRef:
+                  name: todo-app-config
+                  key: MAX_TODO_LENGTH
+          volumeMounts:
+            - name: images-storage
+              mountPath: /usr/src/app/images
+      volumes:
+        - name: images-storage
+          persistentVolumeClaim:
+            claimName: my-project-claim
