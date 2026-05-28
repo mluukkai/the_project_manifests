@@ -4,17 +4,17 @@ kind: Kustomization
 namespace: project
 
 resources:
-  - ../../base
-  - namespace.yaml
-  - manifests/postgres-backup-cronjob.yaml
+- ../../base
+- namespace.yaml
+- manifests/postgres-backup-cronjob.yaml
 
 images:
-  - name: PROJECT/BROADCASTER
-    newName: europe-north1-docker.pkg.dev/my-dwk-gke/my-repository/dwk-environments-broadcaster
-    newTag: main-fa76da87821e5db134c73d5c34223e3df93a8029
-  - name: PROJECT/TODO-APP
-    newName: europe-north1-docker.pkg.dev/my-dwk-gke/my-repository/dwk-environments
-    newTag: main-fa76da87821e5db134c73d5c34223e3df93a8029
-  - name: PROJECT/todo-backend
-    newName: europe-north1-docker.pkg.dev/my-dwk-gke/my-repository/dwk-environments-backend
-    newTag: main-fa76da87821e5db134c73d5c34223e3df93a8029
+- name: PROJECT/BROADCASTER
+  newName: europe-north1-docker.pkg.dev/my-dwk-gke/my-repository/dwk-environments-broadcaster
+  newTag: v0.3
+- name: PROJECT/TODO-APP
+  newName: europe-north1-docker.pkg.dev/my-dwk-gke/my-repository/dwk-environments
+  newTag: v0.3
+- name: PROJECT/todo-backend
+  newName: europe-north1-docker.pkg.dev/my-dwk-gke/my-repository/dwk-environments-backend
+  newTag: v0.3
