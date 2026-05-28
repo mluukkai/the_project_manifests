@@ -11,10 +11,10 @@ resources:
 images:
 - name: PROJECT/BROADCASTER
   newName: europe-north1-docker.pkg.dev/my-dwk-gke/my-repository/dwk-environments-broadcaster
-  newTag: v0.3
+  newTag: v0.4
 - name: PROJECT/TODO-APP
   newName: europe-north1-docker.pkg.dev/my-dwk-gke/my-repository/dwk-environments
-  newTag: v0.3
+  newTag: v0.4
 - name: PROJECT/todo-backend
   newName: europe-north1-docker.pkg.dev/my-dwk-gke/my-repository/dwk-environments-backend
-  newTag: v0.3
+  newTag: v0.4
